@@ -1,0 +1,69 @@
+{
+  "variables": {
+  },
+  "builders": [
+    {
+      "name": "kali_amd64-virtualbox",
+      "type": "virtualbox-iso",
+      "guest_os_type": "Debian_64",
+      "headless": "false",
+      "iso_url": "http://cdimage.kali.org/kali-1.0.7/kali-linux-1.0.7-amd64.iso",
+      "iso_checksum": "6deb789fa05d84cd335d5afb86983119784dd978",
+      "iso_checksum_type": "sha1",
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "ssh_wait_timeout": "3000s",
+      "boot_command": [
+        "<esc><wait>",
+        "install preseed/url=http://{{ .HTTPIP }}:{{ .HTTPPort }}/preseed.cfg auto=true <wait>",
+        "netcfg/get_hostname=kali netcfg/get_domain=vagrantup.com fb=false debconf/frontend=noninteractive <wait>",
+        "<enter><wait>" 
+      ],
+      "boot_wait": "10s",
+      "shutdown_command": "echo 'vagrant' | sudo -S /sbin/shutdown -hP now",
+      "http_directory": "./http_directory",
+      "vboxmanage": [
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--cpus",
+          "1"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--memory",
+          "1024"
+        ]
+      ],
+      "disk_size": 51200
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "script": "./scripts/base.sh"
+    },
+    {
+      "type": "shell",
+      "script": "./scripts/virtualbox.sh"
+    },
+    {
+      "type": "shell",
+      "script": "./scripts/vagrant.sh"
+    },
+    {
+      "type": "shell",
+      "script": "./scripts/compact.sh"
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "output": "./boxes/kali_amd64-{{timestamp}}.box",
+      "only": [
+        "kali_amd64-virtualbox"
+      ]
+    }
+  ]
+}
